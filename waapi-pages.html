@@ -9,6 +9,13 @@
       :host {
         display: block;
       }
+      :host > ::slotted(*) {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
     </style>
     <slot id="pages"></slot>
   </template>
@@ -77,7 +84,7 @@
         };
       }
 
-      _getNodes(){
+      _getPages(){
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
       }
     } window.customElements.define(WaapiPages.is, WaapiPages);
