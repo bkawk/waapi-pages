@@ -14,6 +14,14 @@
 
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
+        html, body{
+          padding: 0px;
+          height: 100%;
+        }
+        .pages{
+          min-height: 100%;
+          background-color: cornflowerblue;
+        }
       </style>
     </custom-style>
   </head>
@@ -22,7 +30,10 @@
       <h3>Basic waapi-pages demo</h3>
       <demo-snippet>
         <template>
-          <waapi-pages></waapi-pages>
+          <waapi-pages
+            class="pages"
+            selected="[[page]]">
+          </waapi-pages>
         </template>
       </demo-snippet>
     </div>
