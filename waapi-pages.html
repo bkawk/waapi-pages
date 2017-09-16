@@ -23,10 +23,55 @@
       static get is() { return 'waapi-pages'; }
       static get properties() {
         return {
-          prop1: {
+        /**
+        * The page to animate to
+        */
+          animateTo: {
             type: String,
-            value: 'waapi-pages'
-          }
+          },
+        /**
+        * True if the animate to page is loading
+        */
+        loading: {
+            type: Boolean,
+            value: false
+        },
+        /**
+        * True if the animate to page is loading
+        */
+        loading: {
+            type: Boolean,
+            value: false
+        },
+        /**
+        * True if the exit animation is playing
+        */
+        exitPlaying: {
+            type: Boolean,
+            value: false
+        },
+        /**
+        * True if the entry animation is playing
+        */
+        entryPlaying: {
+            type: Boolean,
+            value: false
+        },
+        /**
+        * atribute used to select the page
+        */
+        attrForSelected: {
+            type: String,
+            value: 'name'
+        },
+        /**
+        * the name of the page to show if none match
+        */
+        fallbackSelection: {
+            type: String,
+            value: 'view404'
+        },
+
         };
       }
     }
