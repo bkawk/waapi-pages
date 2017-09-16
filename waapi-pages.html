@@ -1,4 +1,6 @@
 <link rel="import" href="../polymer/polymer-element.html">
+
+<!-- // move to index or another html page -->
 <script src="../web-animations-js/web-animations.min.js"></script>
 
 <dom-module id="waapi-pages">
@@ -8,7 +10,7 @@
         display: block;
       }
     </style>
-    <slot></slot>
+    <slot id="pages"></slot>
   </template>
 
   <script>
@@ -74,8 +76,10 @@
 
         };
       }
-    }
 
-    window.customElements.define(WaapiPages.is, WaapiPages);
+      _getNodes(){
+        const pages = Polymer.dom(this.$.pages).getDistributedNodes();
+      }
+    } window.customElements.define(WaapiPages.is, WaapiPages);
   </script>
 </dom-module>
