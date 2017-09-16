@@ -83,9 +83,13 @@
 
         };
       }
-
+      connectedCallback() {
+                super.connectedCallback();
+                this._getPages
+            }
       _getPages(){
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
+        console.log(pages);
       }
     } window.customElements.define(WaapiPages.is, WaapiPages);
   </script>
