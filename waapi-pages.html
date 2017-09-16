@@ -8,17 +8,18 @@
         display: block;
       }
     </style>
+    <slot></slot>
   </template>
 
   <script>
     /**
-     * `waapi-pages`
-     * Page Transitions with Web Animations API
-     *
-     * @customElement
-     * @polymer
-     * @demo demo/index.html
-     */
+    * `waapi-pages`
+    * Page Transitions with Web Animations API
+    *
+    * @customElement
+    * @polymer
+    * @demo demo/index.html
+    */
     class WaapiPages extends Polymer.Element {
       static get is() { return 'waapi-pages'; }
       static get properties() {
