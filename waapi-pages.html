@@ -26,36 +26,35 @@
         /**
         * The page to animate to
         */
-          animateTo: {
+        animateTo: {
             type: String,
-          },
-        /**
-        * True if the animate to page is loading
-        */
-        loading: {
-            type: Boolean,
-            value: false
         },
         /**
         * True if the animate to page is loading
         */
         loading: {
             type: Boolean,
-            value: false
+            value: false,
+            reflectToAttribute: true,
+            notify: true
         },
         /**
         * True if the exit animation is playing
         */
         exitPlaying: {
             type: Boolean,
-            value: false
+            value: false,
+            reflectToAttribute: true,
+            notify: true
         },
         /**
         * True if the entry animation is playing
         */
         entryPlaying: {
             type: Boolean,
-            value: false
+            value: false,
+            reflectToAttribute: true,
+            notify: true
         },
         /**
         * atribute used to select the page
