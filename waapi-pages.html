@@ -1,0 +1,36 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="waapi-pages">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * `waapi-pages`
+     * Page Transitions with Web Animations API
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class WaapiPages extends Polymer.Element {
+      static get is() { return 'waapi-pages'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'waapi-pages'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(WaapiPages.is, WaapiPages);
+  </script>
+</dom-module>
