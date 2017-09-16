@@ -3,7 +3,8 @@
   "description": "Page Transitions with Web Animations API",
   "main": "waapi-pages.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#^2.0.0"
+    "polymer": "Polymer/polymer#^2.0.0",
+    "web-animations-js": "^2.3.1"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
