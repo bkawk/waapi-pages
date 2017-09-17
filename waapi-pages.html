@@ -20,6 +20,10 @@
       :host > ::slotted(:not(.page):not(.animating)){
         display: none !important;
       }
+
+      :host > ::slotted(.animating) {
+        pointer-events: none;
+      }
     </style>
     <slot id="pages"></slot>
   </template>
@@ -96,10 +100,21 @@
       }
       _loadComplete(e){
         this.loading = false;
-        const animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animate.from);
-        const animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animate.to);
-        animateFrom.classList && animateFrom.classList.add('animating')
-        animateTo.classList && animateTo.classList.add('animating')
+        let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animate.from);
+        let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animate.to);
+        animateFrom.classList && animateFrom.classList.add('animating');
+        animateTo.classList && animateTo.classList.add('animating');
+        this.exitPlaying = true;
+        // do animation
+        this.exitPlaying = false;
+        this.entryPlaying = true;
+        // do animation
+        this.entryPlaying = false;
+        // change route
+        // remove page class from the animatefrom page
+        // add page class to the animateto page
+        // remove animating class from both
+        // make sure we are fully reset
       }
       _loadFailed(err){
         console.log(err)
@@ -109,7 +124,7 @@
         for (let page, i = 0; page = pages[i]; i++) {
           if(this.page == page.id){
             page.classList && page.classList.add('page');
-          }  else {
+          } else {
             page.classList && page.classList.remove('page');
             page.classList && page.classList.remove('animating');
           }
