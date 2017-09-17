@@ -98,6 +98,8 @@
         this.loading = false;
         const animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animate.from);
         const animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animate.to);
+        animateFrom.classList && animateFrom.classList.add('animating')
+        animateTo.classList && animateTo.classList.add('animating')
       }
       _loadFailed(err){
         console.log(err)
@@ -107,6 +109,9 @@
         for (let page, i = 0; page = pages[i]; i++) {
           if(this.page == page.id){
             page.classList && page.classList.add('page');
+          }  else {
+            page.classList && page.classList.remove('page');
+            page.classList && page.classList.remove('animating');
           }
         }
       }
