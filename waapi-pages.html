@@ -3,6 +3,7 @@
 <!-- // move to index or another html page -->
 <script src="../web-animations-js/web-animations.min.js"></script>
 
+
 <dom-module id="waapi-pages">
   <template>
     <style>
@@ -15,6 +16,9 @@
         left: 0;
         bottom: 0;
         right: 0;
+      }
+      :host > ::slotted(:not(.page):not(.animating)){
+        display: none !important;
       }
     </style>
     <slot id="pages"></slot>
@@ -34,10 +38,18 @@
       static get properties() {
         return {
         /**
-        * The page to animate to
+        * The page we are on now
         */
-        animateTo: {
+        page: {
             type: String,
+            observer: '_page'
+        },
+        /**
+        * The animation request
+        */
+        animate: {
+            type: Object,
+            observer: '_load'
         },
         /**
         * True if the animate to page is loading
@@ -67,30 +79,38 @@
             notify: true
         },
         /**
-        * atribute used to select the page
+        * Path to the pages
         */
-        attrForSelected: {
+        path: {
             type: String,
-            value: 'name'
-        },
-        /**
-        * the name of the page to show if none match
-        */
-        fallbackSelection: {
-            type: String,
-            value: 'view404'
-        },
+            value: 'src/my-',
+        }
 
         };
       }
-      connectedCallback() {
-                super.connectedCallback();
-                this._getPages
-            }
-      _getPages(){
-        const pages = Polymer.dom(this.$.pages).getDistributedNodes();
-        console.log(pages);
+
+      _load(){
+        const loadPath = `${this.path}${this.animate.to}.html`
+        this.loading = true;
+        Polymer.importHref(loadPath, this._loadComplete.bind(this), this._loadFailed.bind(this), false);
       }
+      _loadComplete(e){
+        this.loading = false;
+        const animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animate.from);
+        const animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animate.to);
+      }
+      _loadFailed(err){
+        console.log(err)
+      }
+      _page(){
+        const pages = Polymer.dom(this.$.pages).getDistributedNodes();
+        for (let page, i = 0; page = pages[i]; i++) {
+          if(this.page == page.id){
+            page.classList && page.classList.add('page');
+          }
+        }
+      }
+      
     } window.customElements.define(WaapiPages.is, WaapiPages);
   </script>
 </dom-module>
