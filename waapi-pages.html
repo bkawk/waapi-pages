@@ -51,7 +51,7 @@
         /**
         * The animation request
         */
-        animate: {
+        animation: {
             type: Object,
             observer: '_load'
         },
@@ -94,14 +94,14 @@
       }
 
       _load(){
-        const loadPath = `${this.path}${this.animate.to}.html`
+        const loadPath = `${this.path}${this.animation.to}.html`
         this.loading = true;
         Polymer.importHref(loadPath, this._loadComplete.bind(this), this._loadFailed.bind(this), false);
       }
       _loadComplete(e){
         this.loading = false;
-        let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animate.from);
-        let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animate.to);
+        let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animation.from);
+        let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animation.to);
         animateFrom.classList && animateFrom.classList.add('animating');
         animateTo.classList && animateTo.classList.add('animating');
         this.exitPlaying = true;
