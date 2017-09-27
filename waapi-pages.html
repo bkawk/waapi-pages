@@ -108,20 +108,11 @@
 
 
         console.log(animateFrom);
-        animateFrom.animate(
-                    [
-                        {'transform': 'translate(0)'},
-                        {'transform': 'translateY(300%)'},
-                    ], {
-                        fill: 'forward',
-                        duration: 2000,
-                        iterations: 10,
-                        iterationStart: 0,
-                        easing: 'cubic-bezier(0.42,0,0.58,1)',
-                        delay: 0,
-                        endDelay: 400,
-                    }
-                    );
+        animateFrom.animate
+        (        
+          this.animation.descriptionArray,
+          this.animation.descriptionObject
+        );
 
 
 
