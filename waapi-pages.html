@@ -9,11 +9,11 @@
 <dom-module id="waapi-pages">
   <template>
     <style>
-       :host {
+      :host {
         display: block;
       }
 
-       :host> ::slotted(*) {
+      :host> ::slotted(*) {
         position: absolute;
         top: 0;
         left: 0;
@@ -21,11 +21,11 @@
         right: 0;
       }
 
-       :host> ::slotted(:not(.page):not(.animating)) {
+      :host> ::slotted(:not(.page):not(.animating)) {
         display: none !important;
       }
 
-       :host> ::slotted(.animating) {
+      :host> ::slotted(.animating) {
         pointer-events: none;
       }
     </style>
@@ -137,9 +137,9 @@
           // remove animating class animateto page
           animateTo.classList && animateTo.classList.remove('animating');
 
-        //change route
-        this.set('route.path', this.animation.to + '/');
-        //this.route.path = '/' + this.animation.to + '/'
+          //change route
+          this.set('route.path', this.animation.to + '/');
+          //this.route.path = '/' + this.animation.to + '/'
         };
 
       }
@@ -147,13 +147,20 @@
         console.log(err)
       }
       _page() {
-        console.log(this.route.path);
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
+        console.log(this.$.pages);
         for (let page, i = 0; page = pages[i]; i++) {
-          if(page){
+          if (page) {
             if (this.route.path.split('/').join('') == page.id) {
               page.classList && page.classList.add('page');
+            } else if (this.route.path.split('/').join('') == '') {
+              for (let page, i = 0; page = pages[i]; i++) {
+                if (page.id == 'view1') {
+                  page.classList && page.classList.add('page');
+                }
+              }
             } else {
+              page.classList && page.classList.remove('page');
               page.classList && page.classList.remove('animating');
             }
           }
