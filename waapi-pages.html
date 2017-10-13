@@ -150,10 +150,12 @@
         console.log(this.route.path);
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
         for (let page, i = 0; page = pages[i]; i++) {
-          if (this.route.path.split('/').join('') == page.id) {
-            page.classList && page.classList.add('page');
-          } else {
-            page.classList && page.classList.remove('animating');
+          if(page){
+            if (this.route.path.split('/').join('') == page.id) {
+              page.classList && page.classList.add('page');
+            } else {
+              page.classList && page.classList.remove('animating');
+            }
           }
         }
       }
