@@ -47,13 +47,6 @@
       static get properties() {
         return {
           /**
-          * The page we are on now
-          */
-          page: {
-            type: String,
-            observer: '_page'
-          },
-          /**
           * The animation request
           */
           animation: {
@@ -78,6 +71,10 @@
           path: {
             type: String,
             value: 'src/my-',
+          },
+          route: {
+            type: Object,
+            observer: '_page'
           }
 
         };
@@ -142,6 +139,7 @@
 
         //change route
         this.set('route.path', this.animation.to + '/');
+        //this.route.path = '/' + this.animation.to + '/'
         };
 
       }
@@ -149,12 +147,12 @@
         console.log(err)
       }
       _page() {
+        console.log(this.route.path);
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
         for (let page, i = 0; page = pages[i]; i++) {
-          if (this.page == page.id) {
+          if (this.route.path.split('/').join('') == page.id) {
             page.classList && page.classList.add('page');
           } else {
-            //page.classList && page.classList.remove('page');
             page.classList && page.classList.remove('animating');
           }
         }
