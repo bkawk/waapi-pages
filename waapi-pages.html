@@ -65,6 +65,13 @@
             notify: true
           },
           /**
+          * True if the page is animating
+          */
+          animating: {
+            type: Boolean,
+            value: false
+          },
+          /**
           * Path is the page path
           * @type {String}
           */
@@ -75,6 +82,10 @@
           route: {
             type: Object,
             observer: '_page'
+          },
+          pageHistory:{
+            type: Array,
+            value: []
           }
 
         };
@@ -88,6 +99,7 @@
 
       _loadComplete(e) {
         this.loading = false;
+        this.animating = true;
         let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animation.from);
         let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animation.to);
 
@@ -140,6 +152,7 @@
         //change route
         this.set('route.path', this.animation.to + '/');
         //this.route.path = '/' + this.animation.to + '/'
+        this.animating = false;
         };
 
       }
@@ -147,7 +160,25 @@
         console.log(err)
       }
       _page() {
-        console.log(this.route.path);
+        // only log this is the back button is used!
+        if(this.animating == false){
+          console.log('You hit back');
+        }
+        // you just landed or hit refresh
+        if(this.pageHistory[0] == this.pageHistory[1] || this.pageHistory.length < 1){
+          console.log('You just landed or refreshed');
+        }
+
+        // what was the previous page?
+        this.pageHistory.push(this.route.path);
+        if(this.pageHistory.length > 2){
+          this.pageHistory.shift();
+        }
+        
+        console.log(this.pageHistory);
+
+        
+
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
         for (let page, i = 0; page = pages[i]; i++) {
           if(page){
