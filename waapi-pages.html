@@ -83,7 +83,7 @@
             type: Object,
             observer: '_page'
           },
-          pageHistory:{
+          pageHistory: {
             type: Array,
             value: []
           }
@@ -97,18 +97,26 @@
         Polymer.importHref(loadPath, this._loadComplete.bind(this), this._loadFailed.bind(this), false);
       }
 
-      _animateBack(pageHistory){
-          this.pageHistory.push(this.route.path);
-          if(this.pageHistory.length > 2){
-            this.pageHistory.shift();
-          }
-
-          let animateFrom = this.$.pages.assignedNodes().find(e => e.id === pageHistory[0].split('/').join(""));
-          let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.route.path.split('/').join(""));
-
-          if(animateFrom.id != animateTo.id){
-            this._animate(animateFrom, animateTo, 'backwards');
-          } 
+      _animateBack(pageHistory) {
+        this.pageHistory.push(this.route.path);
+        if (this.pageHistory.length > 2) {
+          this.pageHistory.shift();
+        }
+        let index = this.pageHistory.indexOf("/");
+        if (index !== -1) {
+          this.pageHistory[index] = "/view1/";
+        }
+        let animateFrom = this.$.pages.assignedNodes().find(e => e.id === pageHistory[0].split('/').join(""));
+        let animateTo;
+        if (this.route.path == "/") {
+          animateTo = this.$.pages.assignedNodes().find(e => e.id === 'view1');
+        }
+        else {
+          animateTo = this.$.pages.assignedNodes().find(e => e.id === this.route.path.split('/').join(""));
+        }
+        if (animateFrom.id != animateTo.id) {
+          this._animate(animateFrom, animateTo, 'backwards');
+        }
       }
 
       _loadComplete(e) {
@@ -118,8 +126,7 @@
         this._animate(animateFrom, animateTo, 'forwards');
       }
 
-
-      _animate(animateFrom, animateTo, direction){
+      _animate(animateFrom, animateTo, direction) {
         this.animating = true;
         // add animating class to outgoing and incoming pages.
         animateFrom.classList && animateFrom.classList.add('animating');
@@ -163,13 +170,13 @@
 
           // remove animating class animateto page
           animateTo.classList && animateTo.classList.remove('animating');
-        //change route
-        if(direction == 'forwards'){
-          console.log(direction);
-          this.set('route.path', this.animation.to + '/');
-        }
-        //this.route.path = '/' + this.animation.to + '/'
-        this.animating = false;
+          //change route
+          if (direction == 'forwards') {
+            console.log(direction);
+            this.set('route.path', this.animation.to + '/');
+          }
+          //this.route.path = '/' + this.animation.to + '/'
+          this.animating = false;
         };
 
       }
@@ -178,26 +185,48 @@
         console.log(err)
       }
       _page() {
-        if(this.animating == false){
+        if (this.animating == false && this.pageHistory.length > 1) {
           this._animateBack(this.pageHistory);
         } else {
           this.pageHistory.push(this.route.path);
-          if(this.pageHistory.length > 2){
+          if (this.pageHistory.length > 2) {
             this.pageHistory.shift();
           }
         }
         // you just landed or hit refresh
-        if((this.pageHistory[0] == this.pageHistory[1]) || this.pageHistory.length < 1){
+        if ((this.pageHistory[0] == this.pageHistory[1]) || this.pageHistory.length < 1) {
           console.log('You just landed or refreshed');
         }
-
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
+        let startPage = true;
         for (let page, i = 0; page = pages[i]; i++) {
-          if(page){
+          if (page) {
             if (this.route.path.split('/').join('') == page.id) {
-              page.classList && page.classList.add('page');
-            } else {
-              page.classList && page.classList.remove('animating');
+              startPage = false;
+            }
+          }
+        }
+        if (startPage) {
+          for (let page, i = 0; page = pages[i]; i++) {
+            if (page) {
+              if (page.id == 'view1') {
+                page.classList && page.classList.add('page');
+              }
+              else {
+                page.classList && page.classList.remove('animating');
+              }
+            }
+          }
+        }
+        else {
+          for (let page, i = 0; page = pages[i]; i++) {
+            if (page) {
+              if (this.route.path.split('/').join('') == page.id) {
+                page.classList && page.classList.add('page');
+              }
+              else {
+                page.classList && page.classList.remove('animating');
+              }
             }
           }
         }
