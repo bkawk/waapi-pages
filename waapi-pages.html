@@ -97,21 +97,36 @@
         Polymer.importHref(loadPath, this._loadComplete.bind(this), this._loadFailed.bind(this), false);
       }
 
+      _animateBack(pageHistory){
+          this.pageHistory.push(this.route.path);
+          if(this.pageHistory.length > 2){
+            this.pageHistory.shift();
+          }
+
+          let animateFrom = this.$.pages.assignedNodes().find(e => e.id === pageHistory[0].split('/').join(""));
+          let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.route.path.split('/').join(""));
+
+          if(animateFrom.id != animateTo.id){
+            this._animate(animateFrom, animateTo, 'backwards');
+          } 
+      }
+
       _loadComplete(e) {
         this.loading = false;
-        this.animating = true;
         let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animation.from);
         let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animation.to);
+        this._animate(animateFrom, animateTo, 'forwards');
+      }
 
+
+      _animate(animateFrom, animateTo, direction){
+        this.animating = true;
         // add animating class to outgoing and incoming pages.
         animateFrom.classList && animateFrom.classList.add('animating');
         animateTo.classList && animateTo.classList.add('animating');
-
-
         // notify all pages of running exit animation
         this.animation.exitPlaying = true;
         this.notifyPath('animation.exitPlaying');
-
         // do exit animation of outgoing page    
         let exitAnimation = animateFrom.animate
           (
@@ -136,9 +151,9 @@
           // notify all pages of finished exit animation
           this.animation.exitPlaying = false;
           this.notifyPath('animation.exitPlaying');
-
-          // remove animating class from the animateFrom page
-          animateFrom.classList && animateFrom.classList.remove('animating');
+          animateFrom.classList && ani mateFrom.classList.remove('animating');
+          animateFrom.classList && animateFrom.classList.remove('page');
+          // TODO: why do wse need page and animating???
         }
 
         entryAnimation.onfinish = () => {
@@ -148,51 +163,40 @@
 
           // remove animating class animateto page
           animateTo.classList && animateTo.classList.remove('animating');
-
         //change route
-        this.set('route.path', this.animation.to + '/');
+        if(direction == 'forwards'){
+          console.log(direction);
+          this.set('route.path', this.animation.to + '/');
+        }
         //this.route.path = '/' + this.animation.to + '/'
         this.animating = false;
         };
 
       }
+
       _loadFailed(err) {
         console.log(err)
       }
       _page() {
-        // only log this is the back button is used!
         if(this.animating == false){
-          console.log('You hit back');
+          this._animateBack(this.pageHistory);
+        } else {
+          this.pageHistory.push(this.route.path);
+          if(this.pageHistory.length > 2){
+            this.pageHistory.shift();
+          }
         }
         // you just landed or hit refresh
-        if(this.pageHistory[0] == this.pageHistory[1] || this.pageHistory.length < 1){
+        if((this.pageHistory[0] == this.pageHistory[1]) || this.pageHistory.length < 1){
           console.log('You just landed or refreshed');
         }
 
-        // what was the previous page?
-        this.pageHistory.push(this.route.path);
-        if(this.pageHistory.length > 2){
-          this.pageHistory.shift();
-        }
-        
-        console.log(this.pageHistory);
-
-        
-
         const pages = Polymer.dom(this.$.pages).getDistributedNodes();
-        console.log(this.$.pages);
         for (let page, i = 0; page = pages[i]; i++) {
-          if (page) {
+          if(page){
             if (this.route.path.split('/').join('') == page.id) {
               page.classList && page.classList.add('page');
-            } else if (this.route.path.split('/').join('') == '') {
-              for (let page, i = 0; page = pages[i]; i++) {
-                if (page.id == 'view1') {
-                  page.classList && page.classList.add('page');
-                }
-              }
             } else {
-              page.classList && page.classList.remove('page');
               page.classList && page.classList.remove('animating');
             }
           }
