@@ -49,12 +49,18 @@
           /**
           * The animation request
           */
-          animation: {
+          pageTransition: {
             type: Object,
-            observer: '_load',
+            observer: '_changeRoute',
             reflectToAttribute: true,
             notify: true,
           },
+
+          route: {
+            type: Object,
+            observer: '_routeChanged'
+          },
+
           /**
           * True if the animate to page is loading
           */
@@ -79,129 +85,202 @@
             type: String,
             value: 'src/my-',
           },
-          route: {
-            type: Object,
-            observer: '_page'
-          },
-          pageHistory:{
+          routeHistory: {
             type: Array,
             value: []
+          },
+          toLoad:{
+            type: String,
+          },
+          startPage:{
+            type: String,
+            value: 'view1'
+          },
+          allFinished:{
+            type: Object,
+            value: {exit: false, entry: false},
           }
 
         };
       }
 
-      _load() {
-        const loadPath = `${this.path}${this.animation.to}.html`
-        this.loading = true;
+      _changeRoute() {
+        if(this.pageTransition){
+          this.set('route.path', this.pageTransition.to + '/');
+        }
+      }
+
+      _routeChanged() {
+        if(this.route.path == '/'){
+          this.toLoad = startPage;
+        } else {
+          this.toLoad = this.route.path.split('/').join('');
+        }
+        this._routeHistory();
+        //if(this.pageTransition ||  this.routeHistory.length == 1 || this.routeHistory[0] == this.routeHistory[1]){
+        this._importPage();
+        //} else {
+          // do back and forwards animations !!??
+          //this._animate(this.routeHistory[0], this.routeHistory[1]);
+        //}
+        
+      }
+
+      _routeHistory() {
+        this.routeHistory.push(this.route.path);
+        if (this.routeHistory.length > 2) {
+          this.routeHistory.shift();
+        }
+        // make sure both pages in the histpry have a class of page and all other pages dont
+        console.log(this.routeHistory);
+      };
+
+      _importPage() {
+        console.log('now loading '+this.toLoad);
+        const loadPath = `${this.path}${this.toLoad}.html`;
         Polymer.importHref(loadPath, this._loadComplete.bind(this), this._loadFailed.bind(this), false);
-      }
-
-      _animateBack(pageHistory){
-          this.pageHistory.push(this.route.path);
-          if(this.pageHistory.length > 2){
-            this.pageHistory.shift();
-          }
-
-          let animateFrom = this.$.pages.assignedNodes().find(e => e.id === pageHistory[0].split('/').join(""));
-          let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.route.path.split('/').join(""));
-
-          if(animateFrom.id != animateTo.id){
-            this._animate(animateFrom, animateTo, 'backwards');
-          } 
-      }
+      };
 
       _loadComplete(e) {
-        this.loading = false;
-        let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.animation.from);
-        let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.animation.to);
-        this._animate(animateFrom, animateTo, 'forwards');
+        if(this.pageTransition){
+          let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.pageTransition.from);
+          let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.pageTransition.to);
+          animateFrom.classList && animateFrom.classList.add('page');
+          animateTo.classList && animateTo.classList.add('page');
+          this._animate(animateFrom, animateTo);
+        } else {
+          let showPage = this.$.pages.assignedNodes().find(e => e.id === this.toLoad);
+          showPage.classList && showPage.classList.add('page');
+        }
       }
 
+      _animate(animateFrom, animateTo) {
+        console.log(animateFrom, animateTo)
+          // add animating class to outgoing and incoming pages.
+          animateFrom.classList && animateFrom.classList.add('animating');
+          animateFrom.classList && animateFrom.classList.add('page');
+          animateTo.classList && animateTo.classList.add('animating');
+          animateTo.classList && animateTo.classList.add('page');
+          // notify all pages of running exit animation
 
-      _animate(animateFrom, animateTo, direction){
-        this.animating = true;
-        // add animating class to outgoing and incoming pages.
-        animateFrom.classList && animateFrom.classList.add('animating');
-        animateTo.classList && animateTo.classList.add('animating');
-        // notify all pages of running exit animation
-        this.animation.exitPlaying = true;
-        this.notifyPath('animation.exitPlaying');
-        // do exit animation of outgoing page    
-        let exitAnimation = animateFrom.animate
-          (
-          this.animation.descriptionArray,
-          this.animation.descriptionObject
-          );
-        exitAnimation.play();
+            this.pageTransition.entryPlaying = true;
+            this.notifyPath('pageTransition.entryPlaying');
+            this.pageTransition.exitPlaying = true;
+            this.notifyPath('pageTransition.exitPlaying');
+          
 
-        // notify all pages of running entry animation
-        this.animation.entryPlaying = true;
-        this.notifyPath('animation.entryPlaying');
+          // prepare exit and entry animations  
+          let exitAnimation = animateFrom.animate
+            (
+            this.pageTransition.descriptionArray,
+            this.pageTransition.descriptionObject
+            );
+          let entryAnimation = animateTo.animate
+            (
+            animateTo.entryAnimation.descriptionArray,
+            animateTo.entryAnimation.descriptionObject
+            );
+          // play the animations
+          exitAnimation.play();
+          entryAnimation.play();
+          // on finishing 
+          exitAnimation.onfinish = () => {
+            // notify all pages of finished exit animation
+            if(this.pageTransition){
+            this.pageTransition.exitPlaying = false;
+            this.notifyPath('pageTransition.exitPlaying');
+            }
+            
+            // hide the exit page and remove the animating class
+            animateFrom.classList && animateFrom.classList.remove('animating');
+            animateFrom.classList && animateFrom.classList.remove('page');
+            this._allFinished(true, false);
+          }
+          entryAnimation.onfinish = () => {
+            // notify all pages of finished entry animation
+            if(this.pageTransition){
+              this.pageTransition.entryPlaying = false;
+              this.notifyPath('pageTransition.entryPlaying');
+            }
+            // remove the animating class
+            animateTo.classList && animateTo.classList.remove('animating');
+            this._allFinished(false, true);
+          };
+      }
 
-        // do entry animation of incoming page
-        let entryAnimation = animateTo.animate
-          (
-          animateTo.entryAnimation.descriptionArray,
-          animateTo.entryAnimation.descriptionObject
-          );
-        entryAnimation.play();
-
-        exitAnimation.onfinish = () => {
-          // notify all pages of finished exit animation
-          this.animation.exitPlaying = false;
-          this.notifyPath('animation.exitPlaying');
-          animateFrom.classList && animateFrom.classList.remove('animating');
-          animateFrom.classList && animateFrom.classList.remove('page');
-          // TODO: why do wse need page and animating???
+      _allFinished(exit, entry){
+        if (exit == true) {
+          this.allFinished.exit = true;
+        } 
+        if (entry == true) {
+          this.allFinished.entry = true;
+        } 
+        if(this.allFinished.exit == true && this.allFinished.entry == true){
+          this.pageTransition =  null;
+          this.allFinished.entry = false;
+          this.allFinished.exit = false;
         }
-
-        entryAnimation.onfinish = () => {
-          // notify all pages of finished entry animation
-          this.animation.entryPlaying = false;
-          this.notifyPath('animation.entryPlaying');
-
-          // remove animating class animateto page
-          animateTo.classList && animateTo.classList.remove('animating');
-        //change route
-        if(direction == 'forwards'){
-          console.log(direction);
-          this.set('route.path', this.animation.to + '/');
-        }
-        //this.route.path = '/' + this.animation.to + '/'
-        this.animating = false;
-        };
-
       }
 
       _loadFailed(err) {
-        console.log(err)
-      }
-      _page() {
-        if(this.animating == false){
-          this._animateBack(this.pageHistory);
-        } else {
-          this.pageHistory.push(this.route.path);
-          if(this.pageHistory.length > 2){
-            this.pageHistory.shift();
-          }
-        }
-        // you just landed or hit refresh
-        if((this.pageHistory[0] == this.pageHistory[1]) || this.pageHistory.length < 1){
-          console.log('You just landed or refreshed');
-        }
-
-        const pages = Polymer.dom(this.$.pages).getDistributedNodes();
-        for (let page, i = 0; page = pages[i]; i++) {
-          if(page){
-            if (this.route.path.split('/').join('') == page.id) {
-              page.classList && page.classList.add('page');
-            } else {
-              page.classList && page.classList.remove('animating');
-            }
-          }
-        }
+        console.log('error' + err)
       }
     } window.customElements.define(WaapiPages.is, WaapiPages);
   </script>
 </dom-module>
+
+<!-- 
+  We always know where we are and where we are going to 
+  the page we are on needs to play the exit animation
+  the page we are going to needs to play the entry animation
+
+  the page we are on has many exit animation depending on the opage we are going to
+  the page wee are going to has many entry animations depending on where we are coming from
+
+_animationBank(fromPage, toPage) {
+
+  // return an exit and entry animation
+
+from1-to2
+from1-to3
+from2-to1
+from2-to3
+from3-to2
+from3-to1
+
+const fromPage-toPage = {
+  entry: {          
+          descriptionArray: [
+            { 'transform': 'translateY(100%)' },
+            { 'transform': 'translateY(0)' },
+          ],
+          descriptionObject: {
+            fill: 'forwards',
+            duration: 1000,
+            iterations: 1,
+            iterationStart: 0,
+            easing: 'cubic-bezier(0.42,0,0.58,1)',
+            delay: 0,
+            endDelay: 0,
+          }},
+    exit: {          
+          descriptionArray: [
+            { 'transform': 'translateY(100%)' },
+            { 'transform': 'translateY(0)' },
+          ],
+          descriptionObject: {
+            fill: 'forwards',
+            duration: 1000,
+            iterations: 1,
+            iterationStart: 0,
+            easing: 'cubic-bezier(0.42,0,0.58,1)',
+            delay: 0,
+            endDelay: 0,
+          }}
+
+}
+
+}
+
+
+-->
