@@ -46,16 +46,6 @@
       static get is() { return 'waapi-pages'; }
       static get properties() {
         return {
-          /**
-          * The animation request
-          */
-          pageTransition: {
-            type: Object,
-            observer: '_changeRoute',
-            reflectToAttribute: true,
-            notify: true,
-          },
-
           route: {
             type: Object,
             observer: '_routeChanged'
@@ -87,136 +77,151 @@
           },
           routeHistory: {
             type: Array,
-            value: []
+            value: [],
+            notify: true,
           },
-          toLoad:{
+          toLoad: {
             type: String,
           },
-          startPage:{
+          startPage: {
             type: String,
             value: 'view1'
           },
-          allFinished:{
+          allFinished: {
             type: Object,
-            value: {exit: false, entry: false},
+            value: { exit: false, entry: false },
+          },
+          animations: {
+            type: Object,
+          },
+          exitPlaying: {
+            type: Boolean,
+            notify: true,
+          },
+          exitPlaying: {
+            type: Boolean,
+            notify: true,
           }
 
         };
       }
 
-      _changeRoute() {
-        if(this.pageTransition){
-          this.set('route.path', this.pageTransition.to + '/');
-        }
-      }
-
       _routeChanged() {
-        if(this.route.path == '/'){
-          this.toLoad = startPage;
+        if (this.route.path == '/') {
+          this.toLoad = this.startPage;
         } else {
           this.toLoad = this.route.path.split('/').join('');
         }
         this._routeHistory();
-        //if(this.pageTransition ||  this.routeHistory.length == 1 || this.routeHistory[0] == this.routeHistory[1]){
         this._importPage();
-        //} else {
-          // do back and forwards animations !!??
-          //this._animate(this.routeHistory[0], this.routeHistory[1]);
-        //}
-        
       }
 
       _routeHistory() {
-        this.routeHistory.push(this.route.path);
+        let temp = this.routeHistory;
+        if (this.route.path == '/') {
+          temp.push(this.startPage);
+        } else {
+          temp.push(this.route.path.split('/').join(''));
+        }
+
+        if (temp.length < 2) {
+          this.routeHistory = [
+            temp[0],
+          ]
+        }
+        else if (temp.length < 3) {
+          this.routeHistory = [
+            temp[0],
+            temp[1],
+          ]
+        }
+        else {
+          this.routeHistory = [
+            temp[1],
+            temp[2],
+          ]
+        }
         if (this.routeHistory.length > 2) {
           this.routeHistory.shift();
         }
-        // make sure both pages in the histpry have a class of page and all other pages dont
-        console.log(this.routeHistory);
       };
 
       _importPage() {
-        console.log('now loading '+this.toLoad);
         const loadPath = `${this.path}${this.toLoad}.html`;
         Polymer.importHref(loadPath, this._loadComplete.bind(this), this._loadFailed.bind(this), false);
       };
 
       _loadComplete(e) {
-        if(this.pageTransition){
-          let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.pageTransition.from);
-          let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.pageTransition.to);
-          animateFrom.classList && animateFrom.classList.add('page');
-          animateTo.classList && animateTo.classList.add('page');
+        if (this.routeHistory.length > 1 && this.routeHistory[0] != this.routeHistory[1]) {
+          let animateFrom = this.$.pages.assignedNodes().find(e => e.id === this.routeHistory[0]);
+          let animateTo = this.$.pages.assignedNodes().find(e => e.id === this.routeHistory[1]);
           this._animate(animateFrom, animateTo);
-        } else {
+        }
+        else {
           let showPage = this.$.pages.assignedNodes().find(e => e.id === this.toLoad);
           showPage.classList && showPage.classList.add('page');
         }
+
       }
 
       _animate(animateFrom, animateTo) {
-        console.log(animateFrom, animateTo)
-          // add animating class to outgoing and incoming pages.
-          animateFrom.classList && animateFrom.classList.add('animating');
-          animateFrom.classList && animateFrom.classList.add('page');
-          animateTo.classList && animateTo.classList.add('animating');
-          animateTo.classList && animateTo.classList.add('page');
-          // notify all pages of running exit animation
+        // add animating class to outgoing and incoming pages.
+        animateFrom.classList && animateFrom.classList.add('animating');
+        animateTo.classList && animateTo.classList.add('animating');
+        animateFrom.classList && animateFrom.classList.add('page');
+        animateTo.classList && animateTo.classList.add('page');
+        // notify all pages of running exit animation
 
-            this.pageTransition.entryPlaying = true;
-            this.notifyPath('pageTransition.entryPlaying');
-            this.pageTransition.exitPlaying = true;
-            this.notifyPath('pageTransition.exitPlaying');
-          
+        this.entryPlaying = true;
+        this.exitPlaying = true;
 
-          // prepare exit and entry animations  
-          let exitAnimation = animateFrom.animate
-            (
-            this.pageTransition.descriptionArray,
-            this.pageTransition.descriptionObject
-            );
-          let entryAnimation = animateTo.animate
-            (
-            animateTo.entryAnimation.descriptionArray,
-            animateTo.entryAnimation.descriptionObject
-            );
-          // play the animations
-          exitAnimation.play();
-          entryAnimation.play();
-          // on finishing 
-          exitAnimation.onfinish = () => {
-            // notify all pages of finished exit animation
-            if(this.pageTransition){
-            this.pageTransition.exitPlaying = false;
-            this.notifyPath('pageTransition.exitPlaying');
-            }
-            
-            // hide the exit page and remove the animating class
-            animateFrom.classList && animateFrom.classList.remove('animating');
-            animateFrom.classList && animateFrom.classList.remove('page');
-            this._allFinished(true, false);
-          }
-          entryAnimation.onfinish = () => {
-            // notify all pages of finished entry animation
-            if(this.pageTransition){
-              this.pageTransition.entryPlaying = false;
-              this.notifyPath('pageTransition.entryPlaying');
-            }
-            // remove the animating class
-            animateTo.classList && animateTo.classList.remove('animating');
-            this._allFinished(false, true);
-          };
+        // prepare exit and entry animations  
+        let exitAnimation = animateFrom.animate
+          (
+          this.animations.exitAnimation.descriptionArray,
+          this.animations.exitAnimation.descriptionObject
+          );
+        let entryAnimation = animateTo.animate
+          (
+          this.animations.entryAnimation.descriptionArray,
+          this.animations.entryAnimation.descriptionObject
+          );
+        // play the animations
+
+        exitAnimation.play();
+        entryAnimation.play();
+        // on finishing 
+        exitAnimation.onfinish = () => {
+          // notify all pages of finished exit animation
+          this.exitPlaying = false;
+
+          // hide the exit page and remove the animating class
+          animateFrom.classList && animateFrom.classList.remove('animating');
+          animateFrom.classList && animateFrom.classList.remove('page');
+          this._allFinished(true, false);
+        }
+        entryAnimation.onfinish = () => {
+          // notify all pages of finished entry animation
+          this.entryPlaying = false;
+          // remove the animating class
+          animateTo.classList && animateTo.classList.remove('animating');
+
+          this._allFinished(false, true);
+        };
+
       }
 
-      _allFinished(exit, entry){
+      _allFinished(exit, entry) {
         if (exit == true) {
           this.allFinished.exit = true;
-        } 
+        }
         if (entry == true) {
           this.allFinished.entry = true;
-        } 
-        if(this.allFinished.exit == true && this.allFinished.entry == true){
-          this.pageTransition =  null;
+        }
+        if (this.allFinished.exit == true && this.allFinished.entry == true) {
+
+          this.animations = null;
+
           this.allFinished.entry = false;
           this.allFinished.exit = false;
         }
@@ -228,59 +233,3 @@
     } window.customElements.define(WaapiPages.is, WaapiPages);
   </script>
 </dom-module>
-
-<!-- 
-  We always know where we are and where we are going to 
-  the page we are on needs to play the exit animation
-  the page we are going to needs to play the entry animation
-
-  the page we are on has many exit animation depending on the opage we are going to
-  the page wee are going to has many entry animations depending on where we are coming from
-
-_animationBank(fromPage, toPage) {
-
-  // return an exit and entry animation
-
-from1-to2
-from1-to3
-from2-to1
-from2-to3
-from3-to2
-from3-to1
-
-const fromPage-toPage = {
-  entry: {          
-          descriptionArray: [
-            { 'transform': 'translateY(100%)' },
-            { 'transform': 'translateY(0)' },
-          ],
-          descriptionObject: {
-            fill: 'forwards',
-            duration: 1000,
-            iterations: 1,
-            iterationStart: 0,
-            easing: 'cubic-bezier(0.42,0,0.58,1)',
-            delay: 0,
-            endDelay: 0,
-          }},
-    exit: {          
-          descriptionArray: [
-            { 'transform': 'translateY(100%)' },
-            { 'transform': 'translateY(0)' },
-          ],
-          descriptionObject: {
-            fill: 'forwards',
-            duration: 1000,
-            iterations: 1,
-            iterationStart: 0,
-            easing: 'cubic-bezier(0.42,0,0.58,1)',
-            delay: 0,
-            endDelay: 0,
-          }}
-
-}
-
-}
-
-
--->
